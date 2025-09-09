@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ThemeToggle from "./components/ThemeToggle";
 
 const REGIONS = [
   "all",
@@ -18,7 +19,7 @@ function App() {
   const [error, setError] = useState(null);
 
   const [skip, setSkip] = useState(0);
-  const limit = 7;
+  const limit = 6;
   const [filter, setFilter] = useState("all");
 
   const page = skip / limit + 1;
@@ -61,7 +62,8 @@ function App() {
   return (
     <div>
       {/* Navbar */}
-      <div className="flex justify-end navbar bg-base-300 mb-2">
+      <div className="flex justify-end navbar gap-1 bg-base-300 mb-2">
+        <ThemeToggle />
         <select onChange={handleChange} value={filter} className="select">
           <option value="all">Filter by region</option>
           {REGIONS.map((region) => (
@@ -73,7 +75,7 @@ function App() {
       </div>
 
       {/* Users grid */}
-      <div className="grid lg:grid-cols-7 md:grid-cols-4 grid-cols-2 gap-3">
+      <div className="grid lg:grid-cols-6 md:grid-cols-4 grid-cols-2 gap-3">
         {users.map(({ id, name, avatar, region }) => (
           <div
             key={id}
@@ -84,7 +86,7 @@ function App() {
               src={avatar}
               alt={name}
             />
-            <div className="absolute left-0 bottom-0 rounded-b-md text-base-100 bg-[#0000006a] w-full">
+            <div className="absolute left-0 bottom-0 w-full rounded-b-md bg-base-300/10 text-base-content backdrop-blur-xs">
               <h2 className="font-semibold">{name}</h2>
               <p className="text-sm">Region: {region}</p>
             </div>
