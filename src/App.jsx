@@ -1,56 +1,121 @@
 import { useEffect, useState } from "react";
 
+const REGIONS = [
+  "all",
+  "Asia",
+  "Canada",
+  "France",
+  "Germany",
+  "Japan",
+  "Italy",
+  "USA",
+  "UK",
+];
+
 function App() {
-  const [movies, setMovies] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const [skip, setSkip] = useState(0);
-  const limit = 7; // har safar 5 ta olish
+  const limit = 7;
+  const [filter, setFilter] = useState("all");
+
+  const page = skip / limit + 1;
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
 
-    // skip'ni page'ga aylantirish
-    const page = skip / limit + 1;
+    // Agar "all" bo‘lsa region qo‘shilmaydi
+    const url =
+      filter === "all"
+        ? `https://68bfdfe30b196b9ce1c24ea2.mockapi.io/users?page=${page}&limit=${limit}`
+        : `https://68bfdfe30b196b9ce1c24ea2.mockapi.io/users?page=${page}&limit=${limit}&region=${filter}`;
 
-    fetch(
-      `https://68ade1bfa0b85b2f2cf4f75a.mockapi.io/movies/MovieApp?page=${page}&limit=${limit}`
-    )
+    fetch(url)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         return res.json();
       })
       .then((res) => {
-        console.log(res);
-        setMovies((prev) => [...prev, ...res]);
+        setUsers((prev) => [...prev, ...res]);
       })
       .catch((err) => {
         console.error("Fetch error:", err);
+        setError(err.message || "Something went wrong");
       })
       .finally(() => setLoading(false));
-  }, [skip]);
+  }, [skip, filter]);
+
+  function handleChange(e) {
+    setFilter(e.target.value);
+    setUsers([]); // yangi filterda eski userlarni tozalash
+    setSkip(0); // qaytadan page=1 dan boshlash
+  }
 
   function handleClick() {
-    setSkip((prev) => prev + limit); // skip oshirib boramiz
+    setSkip((prev) => prev + limit);
   }
 
   return (
-    <>
-      <div className="grid lg:grid-cols-7 gap-1 md:grid-cols-4 grid-cols-2 p-2">
-        {movies.map(({ id, title, poster, description, rating }, index) => (
-          <div className="w-full rounded-md border border-gray-400" key={`${id}-${index}`}>
-            <img className="w-full rounded-t-md" src={poster} alt={title} width="150" />
-            <h2>{title}</h2>
-            <p>{description}</p>
-            <p>⭐ Rating: {rating}</p>
+    <div>
+      {/* Navbar */}
+      <div className="flex justify-end navbar bg-base-300 mb-2">
+        <select onChange={handleChange} value={filter} className="select">
+          <option value="all">Filter by region</option>
+          {REGIONS.map((region) => (
+            <option key={region} value={region} className="capitalize">
+              {region}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Users grid */}
+      <div className="grid lg:grid-cols-7 md:grid-cols-4 grid-cols-2 gap-3">
+        {users.map(({ id, name, avatar, region }) => (
+          <div
+            key={id}
+            className="rounded-md shadow-2xl text-center bg-base-100 relative"
+          >
+            <img
+              className="w-full object-cover flex rounded-md"
+              src={avatar}
+              alt={name}
+            />
+            <div className="absolute left-0 bottom-0 rounded-b-md text-base-100 bg-[#0000006a] w-full">
+              <h2 className="font-semibold">{name}</h2>
+              <p className="text-sm">Region: {region}</p>
+            </div>
           </div>
         ))}
 
-        {loading && <h2>Loading...</h2>}
+        {loading && (
+          <h2 className="col-span-full text-3xl font-light text-center">
+            Loading . . .
+          </h2>
+        )}
+
+        {error && (
+          <h2 className="col-span-full text-red-500 text-xl text-center">
+            {error}
+          </h2>
+        )}
       </div>
-      <button className="sticky left-4 bottom-4 border py-0.5 px-4 rounded-md font-bold bg-[#0e6dfc75]" onClick={handleClick} disabled={loading}>
-        Load More
-      </button>
-    </>
+
+      {/* Load more */}
+      <div className="flex justify-center my-6">
+        <button
+          className="btn btn-primary"
+          aria-label="Load More"
+          onClick={handleClick}
+          disabled={loading}
+        >
+          Load More
+        </button>
+      </div>
+    </div>
   );
 }
 
